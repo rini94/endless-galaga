@@ -1,10 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public  class ObjectPoolItem {
+public class ObjectPoolItem {
 
+	public GameConstants.PooledObject pooledObject;
 	public GameObject objectToPool;
 	public int poolSize;
 	public GameObject parentObject;
@@ -20,7 +20,8 @@ public class ObjectPooler : MonoBehaviour {
 
 		if (instance == null) {
 			instance = this;
-		} else {
+		}
+		else {
 			Destroy (gameObject);
 		}
 		DontDestroyOnLoad (gameObject);
@@ -28,32 +29,50 @@ public class ObjectPooler : MonoBehaviour {
 
 	void Start () {
 
-		createPool ();
+		CreatePool ();
 	}
 
-	void createPool () {
+	public GameObject GetParent (GameConstants.PooledObject pooledObject) {
 
-		foreach(ObjectPoolItem item in itemsToPool) {
-			for(int i = 0; i < item.poolSize; i++) {
-				GameObject objectInstance = Instantiate (item.objectToPool, transform.position, Quaternion.identity) as GameObject;
-				objectInstance.SetActive(false);
-				objectInstance.transform.SetParent(item.parentObject.transform);
+		foreach (ObjectPoolItem item in itemsToPool) {
+
+			if (item.pooledObject == pooledObject) {
+				return item.parentObject;
+			}
+		}
+		return null;
+	}
+
+	void CreatePool () {
+
+		foreach (ObjectPoolItem item in itemsToPool) {
+
+			for (int i = 0; i < item.poolSize; i++) {
+
+				GameObject objectInstance = Instantiate (item.objectToPool, transform.position, Quaternion.identity);
+				objectInstance.SetActive (false);
+				objectInstance.transform.SetParent (item.parentObject.transform);
 			}
 		}
 	}
 
-	public GameObject getPooledObject (string tag) {
+	public GameObject GetPooledObject (GameConstants.PooledObject pooledObject) {
 		 
 		foreach (ObjectPoolItem item in itemsToPool) {
-			if (item.objectToPool.tag == tag) {
+
+			if (item.pooledObject == pooledObject) {
+
 				foreach (Transform child in item.parentObject.transform) {
-					if (child.tag == tag && child.gameObject.activeInHierarchy == false) {
+
+					if (!child.gameObject.activeInHierarchy) {
+
 						child.gameObject.SetActive (true);
 						return child.gameObject;
 					}
 				}
-				if (item.shouldExpand == true) {
-					GameObject objectInstance = Instantiate (item.objectToPool, transform.position, Quaternion.identity) as GameObject;
+				if (item.shouldExpand) {
+
+					GameObject objectInstance = Instantiate (item.objectToPool, transform.position, Quaternion.identity);
 					objectInstance.transform.SetParent (item.parentObject.transform);
 					return objectInstance;
 				}
@@ -62,11 +81,13 @@ public class ObjectPooler : MonoBehaviour {
 		return null;
 	}
 
-	public void deactivateAll () {
+	public void DeactivateAll () {
 
 		foreach (ObjectPoolItem item in itemsToPool) {
+
 			foreach (Transform child in item.parentObject.transform) {
-				if (child.gameObject.activeInHierarchy == true) {
+
+				if (child.gameObject.activeInHierarchy) {
 					child.gameObject.SetActive (false);
 				}
 			}

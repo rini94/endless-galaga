@@ -1,55 +1,67 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class EnemySpawner : MonoBehaviour {
 
-	public AudioClip laserSound;
-	public AudioClip crashSound;
+	//Assigned in inspector - Used by enemy object
+	public AudioController audioController;
+	public UIController uiController;
+	public Player player;
 
 	private float spawnTimer;
 	private bool spawnEnemies;
 	private float spawnGap;
-	private int currentScore;
 
 	void OnEnable () {
 
-		SceneManager.sceneLoaded += GameLoaded;
+		SceneManager.sceneLoaded += SceneEnabled;
 	}
-	
+
 	void Update () {
 
-		currentScore = GameState.score;
-		if (currentScore > 200) {
+		if (ScoreController.instance.GetScore () > 200) {
 			spawnGap = 1f;
-		} else if (currentScore > 100) {
+		}
+		else if (ScoreController.instance.GetScore () > 100) {
 			spawnGap = 1.5f;
-		} else if (currentScore > 50) {
+		}
+		else if (ScoreController.instance.GetScore () > 50) {
 			spawnGap = 2f;
-		} 
+		}
+		if (spawnEnemies && Time.time > spawnTimer && GameState.activeEnemyCount < GameConstants.MAX_ENEMY_COUNT) {
 
-		if (spawnEnemies && Time.time > spawnTimer && GameState.activeEnemyCount < GameState.maxEnemyCount) {
 			spawnTimer = Time.time + spawnGap;
-			activateEnemy ();
+			ActivateEnemy ();
 		}
 	}
 
-	void activateEnemy () {
+	void SceneEnabled (Scene scene, LoadSceneMode mode) {
 
-		GameObject enemy = ObjectPooler.instance.getPooledObject("EnemyShip");
-		enemy.GetComponent<EnemyShip> ().enabled = true;
+		if (GameState.currentState == GameConstants.GameStates.PLAYING) {
+
+			player = FindObjectOfType<Player> ();
+			audioController = FindObjectOfType<AudioController> ();
+			uiController = FindObjectOfType<UIController> ();
+			StartSpawning ();
+		}
+	}
+
+	void ActivateEnemy () {
+
+		GameObject enemy = ObjectPooler.instance.GetPooledObject (GameConstants.PooledObject.ENEMY);
+		enemy.GetComponent<Enemy> ().enabled = true;
 		GameState.activeEnemyCount++;
 	}
 
-	private void GameLoaded (Scene scene, LoadSceneMode mode) {
+	private void StartSpawning () {
 
-		if (SceneManager.GetActiveScene ().name == "Game") {
-			spawnEnemies = true;
-			spawnTimer = Time.time + 1;
-			spawnGap = 3f;
-		} else {
-			spawnEnemies = false;
-		}
+		spawnEnemies = true;
+		spawnTimer = Time.time + 1;
+		spawnGap = 3f;
+	}
+
+	public void StopSpawning () {
+
+		spawnEnemies = false;
 	}
 }

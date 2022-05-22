@@ -1,18 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+﻿using UnityEngine;
 
 public class Asteroids : MonoBehaviour {
 
-	Vector3 screenPos;
-	Vector3 asteroidPos;
-	float asteroidTimer;
-	float size;
+	private Vector3 screenPos;
+	private float asteroidTimer;
 
 	void OnEnable () {
 
-		screenPos = Camera.main.ScreenToWorldPoint(new Vector3 (Screen.width * 0.97f, 0, 0));
+		screenPos = Camera.main.ScreenToWorldPoint (new Vector3 (Screen.width * 0.97f, 0, 0));
 		asteroidTimer = Time.time + 1;
 	}
 	
@@ -21,9 +16,9 @@ public class Asteroids : MonoBehaviour {
 		if (Time.time > asteroidTimer) {
 
 			asteroidTimer = Time.time + 3;
-			GameObject asteroid = ObjectPooler.instance.getPooledObject ("Asteroid");
-			asteroid.transform.position = new Vector3 (Random.Range(-screenPos.x, screenPos.x), transform.position.y, transform.position.z);
-			size = Random.Range (0.3f, 1.0f);
+			GameObject asteroid = ObjectPooler.instance.GetPooledObject (GameConstants.PooledObject.ASTEROID);
+			asteroid.transform.position = new Vector3 (Random.Range (-screenPos.x, screenPos.x), transform.position.y, transform.position.z);
+			float size = Random.Range (0.3f, 1.0f);
 			asteroid.transform.parent = transform;
 			asteroid.transform.localScale = new Vector3 (size, size, 1);
 		}
